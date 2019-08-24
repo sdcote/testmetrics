@@ -57,4 +57,13 @@ public class MetricFormatter {
   }
 
 
+  public static String convertTimersToOpenMetrics(String metricName) {
+    return convertTimersToOpenMetrics(metricName, null);
+  }
+
+  public static String convertTimersToOpenMetrics(String metricName, String helpText) {
+    StringBuilder sb = new StringBuilder();
+    //TODO: implement this
+    return sb.toString();
+  }
 }

@@ -18,14 +18,14 @@ abstract class TimerBase implements Timer {
    * The master timer that accumulates our data.
    */
   protected TimerMaster _master = null;
-
+  /**
+   * The labels for this timer.
+   */
+  protected Map<String, String> _labels = new HashMap<>();
   /**
    * Flag indicating if we have been started or not.
    */
   volatile boolean _isRunningFlag = false;
-
-  /** The labels for this timer. */
-  protected Map<String, String> _labels = new HashMap<>();
 
 
   /**

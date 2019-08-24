@@ -4,6 +4,8 @@ import java.text.DateFormat;
 import java.util.Date;
 
 public class MetricFormatter {
+  public static final String METRIC_NAME_LABEL = "metric_name";
+  public static final String METRIC_HELP_LABEL = "metric_help";
 
   public static String toJson(Timer timer) {
     StringBuilder sb = new StringBuilder("{");
@@ -40,6 +42,7 @@ public class MetricFormatter {
     return sb.toString();
   }
 
+
   private static String getDateString(final long time) {
     if (time == 0) {
       return "";
@@ -48,22 +51,94 @@ public class MetricFormatter {
     }
   }
 
+
   private static String getField(String name, String value) {
     return getQuoted(name).concat(":").concat(getQuoted(value));
   }
+
 
   private static String getQuoted(String value) {
     return "\"" + value + "\"";
   }
 
 
+  /**
+   * Create a set of OpenMetric representations of all the timers in the Scorecard which have a label name of
+   * "metric_name" which matches the given name.
+   *
+   * <p>If the Timer contains a label with the name of "metric_help", that label will be used as the help text for the
+   * returned metric.</p>
+   *
+   * <p>The "job" will be the name of the timer and the "instance" will be the hostname retrieved from the ScoreCard.</p>
+   *
+   * @param metricName the name of the metric
+   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no timers
+   * were found with the matching labels.
+   */
   public static String convertTimersToOpenMetrics(String metricName) {
-    return convertTimersToOpenMetrics(metricName, null);
-  }
-
-  public static String convertTimersToOpenMetrics(String metricName, String helpText) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
     return sb.toString();
   }
+
+
+  /**
+   * Create a set of OpenMetric representations of all the counters in the Scorecard which have a label name of
+   * "metric_name" which matches the given name.
+   *
+   * <p>If the Counter contains a label with the name of "metric_help", that label will be used as the help text for
+   * the returned metric.</p>
+   *
+   * <p>The "job" will be the name of the counter and the "instance" will be the hostname retrieved from the ScoreCard.</p>
+   *
+   * @param metricName the name of the metric
+   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no counters
+   * were found with the matching labels.
+   */
+  public static String convertCountersToOpenMetrics(String metricName) {
+    StringBuilder sb = new StringBuilder();
+    //TODO: implement this
+    return sb.toString();
+  }
+
+
+  /**
+   * Create a set of OpenMetric representations of all the gauges in the Scorecard which have a label name of
+   * "metric_name" which matches the given name.
+   *
+   * <p>If the Gauge contains a label with the name of "metric_help", that label will be used as the help text for the
+   * returned metric.</p>
+   *
+   * <p>The "job" will be the name of the gauge and the "instance" will be the hostname retrieved from the ScoreCard.</p>
+   *
+   * @param metricName the name of the metric
+   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no gauges
+   * were found with the matching labels.
+   */
+  public static String convertGaugesToOpenMetrics(String metricName) {
+    StringBuilder sb = new StringBuilder();
+    //TODO: implement this
+    return sb.toString();
+  }
+
+
+  /**
+   * Create a set of OpenMetric representations of all the counters, timers, and gauges in the Scorecard which have a
+   * label name of "metric_name".
+   *
+   * <p>If the timer, counter or gauge contains a label with the name of "metric_help", that label will be used as the
+   * help text for the returned metric.</p>
+   *
+   * <p>The "job" will be the name of the timer, gauge or counter and the "instance" will be the hostname retrieved
+   * from the ScoreCard.</p>
+   *
+   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no timers,
+   * counter or gauges were found in the ScoreCard.
+   */
+  public static String convertScoreCardToOpenMetrics() {
+    StringBuilder sb = new StringBuilder();
+    //TODO: implement this
+    return sb.toString();
+  }
+
 }

@@ -64,14 +64,14 @@ public class TimingMasterTests {
   public void testGetName() {
     TimingMaster subject = new TimingMaster("Bob");
     assertNotNull("Name should not be null", subject.getName());
-    assertTrue("Bob".equals(subject.getName()),"Timer name did not match");
+    assertTrue("Bob".equals(subject.getName()), "Timer name did not match");
   }
 
 
   @Test
   public void testIsEnabled() {
     TimingMaster subject = new TimingMaster("testIsEnabled");
-    assertTrue(subject.isEnabled(),"Timer should be enabled by default");
+    assertTrue(subject.isEnabled(), "Timer should be enabled by default");
   }
 
 
@@ -80,15 +80,15 @@ public class TimingMasterTests {
     TimingMaster subject = new TimingMaster("testSetEnabled");
 
     Timer monitor = subject.createTimer();
-    assertNotNull( monitor,"TimingMaster did not return a monitor");
+    assertNotNull(monitor, "TimingMaster did not return a monitor");
 
     subject.setEnabled(false);
-    assertFalse(subject.isEnabled(),"Timer should be disabled now");
+    assertFalse(subject.isEnabled(), "Timer should be disabled now");
 
     monitor = subject.createTimer();
-    assertNotNull(monitor,"TimingMaster did not return a monitor when disabled");
+    assertNotNull(monitor, "TimingMaster did not return a monitor when disabled");
 
-    assertTrue((monitor instanceof NullTimer),"Returned monitor was not a NullTimer type");
+    assertTrue((monitor instanceof NullTimer), "Returned monitor was not a NullTimer type");
   }
 
 
@@ -96,7 +96,7 @@ public class TimingMasterTests {
   public void testCreateTimer() {
     TimingMaster subject = new TimingMaster("testCreateTimer");
     Timer monitor = subject.createTimer();
-    assertNotNull( monitor,"TimingMaster did not return a monitor");
+    assertNotNull(monitor, "TimingMaster did not return a monitor");
   }
 
 
@@ -105,7 +105,7 @@ public class TimingMasterTests {
     TimingMaster subject = new TimingMaster("testResetThis");
     subject.increase(5);
     subject.resetThis();
-    assertTrue(subject.accrued == 0,"Accrued value was not reset");
+    assertTrue(subject.accrued == 0, "Accrued value was not reset");
   }
 
 
@@ -113,7 +113,7 @@ public class TimingMasterTests {
   public void testIncrease() {
     TimingMaster subject = new TimingMaster("testIncrease");
     subject.increase(5);
-    assertTrue(subject.accrued == 5,"Accrued value was not incremented");
+    assertTrue(subject.accrued == 5, "Accrued value was not incremented");
   }
 
 
@@ -123,27 +123,27 @@ public class TimingMasterTests {
   @Test
   public void testGetCurrentActive() {
     TimingMaster subject = new TimingMaster("testGetCurrentActive");
-    assertTrue(subject.getCurrentActive() == 0,"CurrentActive did not start out at zero");
+    assertTrue(subject.getCurrentActive() == 0, "CurrentActive did not start out at zero");
     Timer m1 = subject.createTimer();
-    assertTrue(subject.getCurrentActive() == 0,"CurrentActive did not remain at zero after creating monitor");
+    assertTrue(subject.getCurrentActive() == 0, "CurrentActive did not remain at zero after creating monitor");
     Timer m2 = subject.createTimer();
-    assertTrue(subject.getCurrentActive() == 0,"CurrentActive did not remain at zero after creating monitor");
+    assertTrue(subject.getCurrentActive() == 0, "CurrentActive did not remain at zero after creating monitor");
     Timer m3 = subject.createTimer();
-    assertTrue(subject.getCurrentActive() == 0,"CurrentActive did not remain at zero after creating monitor");
+    assertTrue(subject.getCurrentActive() == 0, "CurrentActive did not remain at zero after creating monitor");
 
     m1.start();
-    assertTrue( subject.getCurrentActive() == 1,"CurrentActive did not increment to 1 after starting monitor");
+    assertTrue(subject.getCurrentActive() == 1, "CurrentActive did not increment to 1 after starting monitor");
     m2.start();
-    assertTrue(subject.getCurrentActive() == 2,"CurrentActive did not increment to 2 after starting monitor");
+    assertTrue(subject.getCurrentActive() == 2, "CurrentActive did not increment to 2 after starting monitor");
     m3.start();
-    assertTrue(subject.getCurrentActive() == 3,"CurrentActive did not increment to 3 after starting monitor");
+    assertTrue(subject.getCurrentActive() == 3, "CurrentActive did not increment to 3 after starting monitor");
 
     m1.stop();
-    assertTrue(subject.getCurrentActive() == 2,"CurrentActive did not decrement to 2 after stopping monitor 1");
+    assertTrue(subject.getCurrentActive() == 2, "CurrentActive did not decrement to 2 after stopping monitor 1");
     m2.stop();
-    assertTrue(subject.getCurrentActive() == 1,"CurrentActive did not decrement to 1 after stopping monitor 2");
+    assertTrue(subject.getCurrentActive() == 1, "CurrentActive did not decrement to 1 after stopping monitor 2");
     m3.stop();
-    assertTrue(subject.getCurrentActive() == 0,"CurrentActive did not decrement to 0 after stopping monitor 3");
+    assertTrue(subject.getCurrentActive() == 0, "CurrentActive did not decrement to 0 after stopping monitor 3");
 
   }
 

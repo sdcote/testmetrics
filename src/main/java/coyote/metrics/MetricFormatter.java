@@ -2,6 +2,7 @@ package coyote.metrics;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Iterator;
 
 public class MetricFormatter {
   public static final String METRIC_NAME_LABEL = "metric_name";
@@ -78,6 +79,25 @@ public class MetricFormatter {
   public static String convertTimersToOpenMetrics(String metricName) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
+      Timer timer = (Timer) it.next();
+      if (timer.hasLabel(METRIC_NAME_LABEL) && metricName.equals(timer.getLabel(METRIC_NAME_LABEL))) {
+        if (timer.hasLabel(METRIC_HELP_LABEL) && timer.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+          sb.append("HELP ");
+          sb.append(timer.getLabel(METRIC_HELP_LABEL).trim());
+          sb.append("\n");
+        }
+        sb.append("TYPE ");
+        sb.append(metricName);
+        sb.append(" counter\n");
+        sb.append(metricName);
+        sb.append(" ");
+        sb.append(getLabels(timer));
+        sb.append(" ");
+        sb.append(timer.getAccrued());
+        sb.append("\n");
+      }
+    }
     return sb.toString();
   }
 
@@ -98,6 +118,27 @@ public class MetricFormatter {
   public static String convertCountersToOpenMetrics(String metricName) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    if (metricName != null) {
+      for (Iterator<Counter> it = ScoreCard.getCounterIterator(); it.hasNext(); ) {
+        Counter counter = it.next();
+        if (counter.hasLabel(METRIC_NAME_LABEL) && metricName.equals(counter.getLabel(METRIC_NAME_LABEL))) {
+          if (counter.hasLabel(METRIC_HELP_LABEL) && counter.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+            sb.append("HELP ");
+            sb.append(counter.getLabel(METRIC_HELP_LABEL).trim());
+            sb.append("\n");
+          }
+          sb.append("TYPE ");
+          sb.append(metricName);
+          sb.append(" counter\n");
+          sb.append(metricName);
+          sb.append(" ");
+          sb.append(getLabels(counter));
+          sb.append(" ");
+          sb.append(counter.getValue());
+          sb.append("\n");
+        }
+      }
+    }
     return sb.toString();
   }
 
@@ -118,6 +159,27 @@ public class MetricFormatter {
   public static String convertGaugesToOpenMetrics(String metricName) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    if (metricName != null) {
+      for (Iterator<Gauge> it = ScoreCard.getGaugeIterator(); it.hasNext(); ) {
+        Gauge gauge = it.next();
+        if (gauge.hasLabel(METRIC_NAME_LABEL) && metricName.equals(gauge.getLabel(METRIC_NAME_LABEL))) {
+          if (gauge.hasLabel(METRIC_HELP_LABEL) && gauge.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+            sb.append("HELP ");
+            sb.append(gauge.getLabel(METRIC_HELP_LABEL).trim());
+            sb.append("\n");
+          }
+          sb.append("TYPE ");
+          sb.append(metricName);
+          sb.append(" gauge\n");
+          sb.append(metricName);
+          sb.append(" ");
+          sb.append(getLabels(gauge));
+          sb.append(" ");
+          sb.append(gauge.getValue());
+          sb.append("\n");
+        }
+      }
+    }
     return sb.toString();
   }
 
@@ -136,6 +198,13 @@ public class MetricFormatter {
    * counter or gauges were found in the ScoreCard.
    */
   public static String convertScoreCardToOpenMetrics() {
+    StringBuilder sb = new StringBuilder();
+    //TODO: implement this
+    return sb.toString();
+  }
+
+
+  private static String getLabels(Labeled labeled) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
     return sb.toString();

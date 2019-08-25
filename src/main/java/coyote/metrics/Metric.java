@@ -1,5 +1,7 @@
 package coyote.metrics;
 
+
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +10,7 @@ import java.util.Map;
 /**
  * The Metric class models a basic metric.
  */
-public class Metric {
+public class Metric implements Labeled {
   protected String _name;
   protected String _description = null;
   protected long _updateCount = 0;
@@ -69,7 +71,8 @@ public class Metric {
    * @param name  name of the value to place
    * @param value the value to map to the name
    */
-  public void addLabel(String name, String value) {
+  @Override
+  public Labeled addLabel(String name, String value) {
     if (name != null) {
       if (value != null) {
         _labels.put(name, value);
@@ -77,6 +80,7 @@ public class Metric {
         _labels.remove(name);
       }
     }
+    return this;
   }
 
   /**
@@ -85,6 +89,7 @@ public class Metric {
    * @param name the name of the label to cearch
    * @return true if a label with that name exists, false otherwise.
    */
+  @Override
   public boolean hasLabel(String name) {
     if (name != null)
       return _labels.containsKey(name);
@@ -98,6 +103,7 @@ public class Metric {
    * @param name the name of the label to retrieve
    * @return the value of the named label or null if the named value does ot exist.
    */
+  @Override
   public String getLabel(String name) {
     String retval = null;
     if (name != null) retval = _labels.get(name);
@@ -107,6 +113,7 @@ public class Metric {
   /**
    * @return a mutable list of label names.
    */
+  @Override
   public List<String> labelNames() {
     List<String> retval = new ArrayList<>();
     for (String name : _labels.keySet()) retval.add(name);

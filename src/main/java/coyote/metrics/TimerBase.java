@@ -94,7 +94,7 @@ abstract class TimerBase implements Timer {
    * @param value the value to map to the name
    */
   @Override
-  public Timer addLabel(String name, String value) {
+  public Labeled addLabel(String name, String value) {
     if (name != null) {
       if (value != null) {
         _labels.put(name, value);

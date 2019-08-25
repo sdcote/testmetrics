@@ -1,5 +1,7 @@
 package coyote.metrics;
 
+import java.util.Random;
+
 public class OpenMetricDemo {
 
   public static void main(String[] args) {
@@ -11,7 +13,10 @@ public class OpenMetricDemo {
             .addLabel("env", "dev");
 
     // The test executes
-
+    try {
+      Thread.sleep( new Random().nextInt(3000));
+    } catch (InterruptedException e) {
+    }
     // Then we stop the timer in the @After hook
     ScoreCard.stopTimer("Name of the scenario");
 

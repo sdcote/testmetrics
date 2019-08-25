@@ -79,17 +79,23 @@ public class MetricFormatter {
   public static String convertTimersToOpenMetrics(String metricName) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    boolean outputHelp = false;
+    boolean outputType = false;
     for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
       Timer timer = (Timer) it.next();
       if (timer.hasLabel(METRIC_NAME_LABEL) && metricName.equals(timer.getLabel(METRIC_NAME_LABEL))) {
-        if (timer.hasLabel(METRIC_HELP_LABEL) && timer.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+        if (!outputHelp && timer.hasLabel(METRIC_HELP_LABEL) && timer.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
           sb.append("HELP ");
           sb.append(timer.getLabel(METRIC_HELP_LABEL).trim());
           sb.append("\n");
+          outputHelp = true;
         }
-        sb.append("TYPE ");
-        sb.append(metricName);
-        sb.append(" counter\n");
+        if (!outputType) {
+          sb.append("TYPE ");
+          sb.append(metricName);
+          sb.append(" counter\n");
+          outputType = true;
+        }
         sb.append(metricName);
         sb.append(" ");
         sb.append(getLabels(timer));
@@ -118,18 +124,24 @@ public class MetricFormatter {
   public static String convertCountersToOpenMetrics(String metricName) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    boolean outputHelp = false;
+    boolean outputType = false;
     if (metricName != null) {
       for (Iterator<Counter> it = ScoreCard.getCounterIterator(); it.hasNext(); ) {
         Counter counter = it.next();
         if (counter.hasLabel(METRIC_NAME_LABEL) && metricName.equals(counter.getLabel(METRIC_NAME_LABEL))) {
-          if (counter.hasLabel(METRIC_HELP_LABEL) && counter.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+          if (!outputHelp && counter.hasLabel(METRIC_HELP_LABEL) && counter.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
             sb.append("HELP ");
             sb.append(counter.getLabel(METRIC_HELP_LABEL).trim());
             sb.append("\n");
+            outputHelp = true;
           }
-          sb.append("TYPE ");
-          sb.append(metricName);
-          sb.append(" counter\n");
+          if (!outputType) {
+            sb.append("TYPE ");
+            sb.append(metricName);
+            sb.append(" counter\n");
+            outputType = true;
+          }
           sb.append(metricName);
           sb.append(" ");
           sb.append(getLabels(counter));
@@ -159,18 +171,24 @@ public class MetricFormatter {
   public static String convertGaugesToOpenMetrics(String metricName) {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    boolean outputHelp = false;
+    boolean outputType = false;
     if (metricName != null) {
       for (Iterator<Gauge> it = ScoreCard.getGaugeIterator(); it.hasNext(); ) {
         Gauge gauge = it.next();
         if (gauge.hasLabel(METRIC_NAME_LABEL) && metricName.equals(gauge.getLabel(METRIC_NAME_LABEL))) {
-          if (gauge.hasLabel(METRIC_HELP_LABEL) && gauge.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+          if (!outputHelp && gauge.hasLabel(METRIC_HELP_LABEL) && gauge.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
             sb.append("HELP ");
             sb.append(gauge.getLabel(METRIC_HELP_LABEL).trim());
             sb.append("\n");
+            outputHelp = true;
           }
-          sb.append("TYPE ");
-          sb.append(metricName);
-          sb.append(" gauge\n");
+          if (!outputType) {
+            sb.append("TYPE ");
+            sb.append(metricName);
+            sb.append(" gauge\n");
+            outputType = true;
+          }
           sb.append(metricName);
           sb.append(" ");
           sb.append(getLabels(gauge));

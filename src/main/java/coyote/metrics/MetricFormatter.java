@@ -218,6 +218,9 @@ public class MetricFormatter {
   public static String convertScoreCardToOpenMetrics() {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
+    // get a list of all the metric names for all types of metrics
+    // call all three types with each metric name to group metric names together so headers are not repeated unnecessarily
+    // concatenate all the results
     return sb.toString();
   }
 

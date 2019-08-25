@@ -14,7 +14,7 @@ public class OpenMetricDemo {
 
     // The test executes
     try {
-      Thread.sleep( new Random().nextInt(3000));
+      Thread.sleep(new Random().nextInt(3000));
     } catch (InterruptedException e) {
     }
     // Then we stop the timer in the @After hook

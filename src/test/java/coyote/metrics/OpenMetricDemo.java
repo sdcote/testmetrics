@@ -1,12 +1,14 @@
 package coyote.metrics;
 
+import coyote.metrics.prom.PushGatewayClient;
+
 import java.util.Random;
 
 /**
  * Collecting metrics for tests is different than standard APM use cases. It is helpful to think about how the metrics
  * will be reported. Timers collect information on duration, so the metric name will usually be based on that; e.g.
  * "test_duration" or simply "duration".
- *
+ * <p>
  * The job label is used to differentiate the same metric (like "duration"). For testing purposes, the name of the test
  * can be used as the job label. In this way, durations of a test can be treated separately. The "login" duration can
  * be reported separately from the "retrieve balance" duration.
@@ -46,6 +48,9 @@ public class OpenMetricDemo {
 
     // All our metrics to be sent to the PushGateway, or posted to an exporter for Prometheus to scrape
     //String metrics = timerMetrics.concat(counterMetrics.concat(gaugeMetrics));
+
+    PushGatewayClient client = new PushGatewayClient();
+    client.push("test_duration", "job_name");
 
   }
 }

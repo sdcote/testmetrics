@@ -204,4 +204,14 @@ public class PushGatewayClient {
   }
 
 
+  /**
+   *
+   * @param metricName
+   * @param jobName
+   */
+  public void push(String metricName, String jobName) {
+    // Scan the ScoreCard for all the Timers, Counters and Gauges with a matching metric name label, and send them to
+    // the PushGateway.
+
+  }
 }

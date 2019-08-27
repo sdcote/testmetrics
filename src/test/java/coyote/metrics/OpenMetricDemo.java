@@ -2,6 +2,7 @@ package coyote.metrics;
 
 import coyote.metrics.prom.PushGatewayClient;
 
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Random;
  */
 public class OpenMetricDemo {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
 
     // When a test starts we create and start the timer in the @Before hook
     ScoreCard.startTimer("Name of the scenario")
@@ -28,8 +29,10 @@ public class OpenMetricDemo {
       Thread.sleep(new Random().nextInt(3000));
     } catch (InterruptedException e) {
     }
+
     // Then we stop the timer in the @After hook
     ScoreCard.stopTimer("Name of the scenario");
+    System.out.println(ScoreCard.getTimerMaster("Name of the scenario"));
 
     // This happens many times, for all the test scenarios in our test cases
 
@@ -37,6 +40,7 @@ public class OpenMetricDemo {
 
     // Now we ask the Metrics Formatter to convert all the timers with a "metric_name" label of "performance_test_duration"
     String timerMetrics = MetricFormatter.convertTimersToOpenMetrics("test_duration");
+    System.out.println(timerMetrics);
     // this scans all the timers with a label with a name of "metric_name" which matches "performance_test_duration" and
     // creates an OpenMetric formatted line for that metric. All other labels are added as labels to the OpenMetric record.
 
@@ -44,13 +48,13 @@ public class OpenMetricDemo {
     // String counterMetrics = MetricFormatter.convertCountersToOpenMetrics("test_step_count");
 
     // gauges
-    String gaugeMetrics = MetricFormatter.convertGaugesToOpenMetrics("test_failure_count");
+    //String gaugeMetrics = MetricFormatter.convertGaugesToOpenMetrics("test_failure_count");
 
     // All our metrics to be sent to the PushGateway, or posted to an exporter for Prometheus to scrape
     //String metrics = timerMetrics.concat(counterMetrics.concat(gaugeMetrics));
 
-    PushGatewayClient client = new PushGatewayClient();
-    client.push("test_duration", "job_name");
+//    PushGatewayClient client = new PushGatewayClient();
+//    client.push("test_duration", "job_name");
 
   }
 }

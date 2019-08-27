@@ -3,7 +3,7 @@ package coyote.metrics;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Date;
+import java.util.*;
 
 
 /**
@@ -31,6 +31,10 @@ public class TimingMaster implements TimerMaster {
    * The number of global timers currently active.
    */
   private static volatile long globalCounter;
+  /**
+   * Name-value pairs for labeling of metrics
+   */
+  protected Map<String, String> labels = new HashMap<>();
   /**
    * The name of this master set of timers.
    */
@@ -373,6 +377,64 @@ public class TimingMaster implements TimerMaster {
     return activeCounter;
   }
 
+
+  /**
+   * Add the given name-value pair to the list of labels for this metric.
+   *
+   * <p>If the name is null the value will not be added. If the value is null the existing value with that name will be
+   * removed.</p>
+   *
+   * @param name  name of the value to place
+   * @param value the value to map to the name
+   */
+  @Override
+  public Labeled addLabel(String name, String value) {
+    if (name != null) {
+      if (value != null) {
+        labels.put(name, value);
+      } else {
+        labels.remove(name);
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Check to see if the metric contains a named label
+   *
+   * @param name the name of the label to cearch
+   * @return true if a label with that name exists, false otherwise.
+   */
+  @Override
+  public boolean hasLabel(String name) {
+    if (name != null)
+      return labels.containsKey(name);
+    else
+      return false;
+  }
+
+  /**
+   * Return the value of the label with the given name
+   *
+   * @param name the name of the label to retrieve
+   * @return the value of the named label or null if the named value does ot exist.
+   */
+  @Override
+  public String getLabel(String name) {
+    String retval = null;
+    if (name != null) retval = labels.get(name);
+    return retval;
+  }
+
+  /**
+   * @return a mutable list of label names.
+   */
+  @Override
+  public List<String> labelNames() {
+    List<String> retval = new ArrayList<>();
+    for (String name : labels.keySet()) retval.add(name);
+    return retval;
+  }
 
   /**
    * Method toString

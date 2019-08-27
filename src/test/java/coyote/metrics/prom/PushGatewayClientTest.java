@@ -13,11 +13,11 @@ class PushGatewayClientTest {
   @Test
   void push() {
     Writer writer = new StringWriter();
-    try {
-      PushGatewayClient.write004(writer);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+//    try {
+//      PushGatewayClient.write004(writer);
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
 
     System.out.println(writer.toString());
   }

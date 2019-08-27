@@ -1,9 +1,6 @@
 package coyote.metrics;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The TimerBase class models the base class for all timers.
@@ -18,10 +15,7 @@ abstract class TimerBase implements Timer {
    * The master timer that accumulates our data.
    */
   protected TimerMaster _master = null;
-  /**
-   * The labels for this timer.
-   */
-  protected Map<String, String> _labels = new HashMap<>();
+
   /**
    * Flag indicating if we have been started or not.
    */
@@ -95,13 +89,7 @@ abstract class TimerBase implements Timer {
    */
   @Override
   public Labeled addLabel(String name, String value) {
-    if (name != null) {
-      if (value != null) {
-        _labels.put(name, value);
-      } else {
-        _labels.remove(name);
-      }
-    }
+    _master.addLabel(name, value);
     return this;
   }
 
@@ -114,10 +102,7 @@ abstract class TimerBase implements Timer {
    */
   @Override
   public boolean hasLabel(String name) {
-    if (name != null)
-      return _labels.containsKey(name);
-    else
-      return false;
+    return _master.hasLabel(name);
   }
 
 
@@ -129,9 +114,7 @@ abstract class TimerBase implements Timer {
    */
   @Override
   public String getLabel(String name) {
-    String retval = null;
-    if (name != null) retval = _labels.get(name);
-    return retval;
+    return _master.getLabel(name);
   }
 
 
@@ -140,9 +123,7 @@ abstract class TimerBase implements Timer {
    */
   @Override
   public List<String> labelNames() {
-    List<String> retval = new ArrayList<>();
-    for (String name : _labels.keySet()) retval.add(name);
-    return retval;
+    return _master.labelNames();
   }
 
 }

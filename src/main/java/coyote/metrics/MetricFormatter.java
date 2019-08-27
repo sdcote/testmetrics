@@ -1,5 +1,8 @@
 package coyote.metrics;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -168,8 +171,8 @@ public class MetricFormatter {
    * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no gauges
    * were found with the matching labels.
    */
-  public static String convertGaugesToOpenMetrics(String metricName) {
-    StringBuilder sb = new StringBuilder();
+  public static String convertGaugesToOpenMetrics(String metricName) throws IOException {
+    Writer writer = new StringWriter();
     //TODO: implement this
     boolean outputHelp = false;
     boolean outputType = false;
@@ -178,27 +181,27 @@ public class MetricFormatter {
         Gauge gauge = it.next();
         if (gauge.hasLabel(METRIC_NAME_LABEL) && metricName.equals(gauge.getLabel(METRIC_NAME_LABEL))) {
           if (!outputHelp && gauge.hasLabel(METRIC_HELP_LABEL) && gauge.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
-            sb.append("HELP ");
-            sb.append(gauge.getLabel(METRIC_HELP_LABEL).trim());
-            sb.append("\n");
+            writer.append("HELP ");
+            writeEscapedHelp(writer,gauge.getLabel(METRIC_HELP_LABEL).trim());
+            writer.append("\n");
             outputHelp = true;
           }
           if (!outputType) {
-            sb.append("TYPE ");
-            sb.append(metricName);
-            sb.append(" gauge\n");
+            writer.append("TYPE ");
+            writer.append(metricName);
+            writer.append(" gauge\n");
             outputType = true;
           }
-          sb.append(metricName);
-          sb.append(" ");
-          sb.append(getLabels(gauge));
-          sb.append(" ");
-          sb.append(gauge.getValue());
-          sb.append("\n");
+          writer.append(metricName);
+          writer.append(" ");
+          writer.append(getLabels(gauge));
+          writer.append(" ");
+          writer.append(Long.toString(gauge.getValue()));
+          writer.append("\n");
         }
       }
     }
-    return sb.toString();
+    return writer.toString();
   }
 
 
@@ -216,12 +219,12 @@ public class MetricFormatter {
    * counter or gauges were found in the ScoreCard.
    */
   public static String convertScoreCardToOpenMetrics() {
-    StringBuilder sb = new StringBuilder();
+    Writer writer = new StringWriter();
     //TODO: implement this
     // get a list of all the metric names for all types of metrics
     // call all three types with each metric name to group metric names together so headers are not repeated unnecessarily
     // concatenate all the results
-    return sb.toString();
+    return writer.toString();
   }
 
 
@@ -229,6 +232,89 @@ public class MetricFormatter {
     StringBuilder sb = new StringBuilder();
     //TODO: implement this
     return sb.toString();
+  }
+
+
+
+
+
+
+  /**
+   * Write out the text version 0.0.4 of the given MetricFamilySamples.
+   */
+  private static void write004(Writer writer) throws IOException {
+    // See http://prometheus.io/docs/instrumenting/exposition_formats/  for the output format specification.
+
+    while(mfs.hasMoreElements()) {
+      //Collector.MetricFamilySamples metricFamilySamples = mfs.nextElement();
+      writer.write("# HELP ");
+      writer.write(metricFamilySamples.name);
+      writer.write(' ');
+      writeEscapedHelp(writer, metricFamilySamples.help);
+      writer.write('\n');
+
+      writer.write("# TYPE ");
+      writer.write(metricFamilySamples.name);
+      writer.write(' ');
+      writer.write(typeString(metricFamilySamples.type));
+      writer.write('\n');
+
+      for (Collector.MetricFamilySamples.Sample sample: metricFamilySamples.samples) {
+        writer.write(sample.name);
+        if (sample.labelNames.size() > 0) {
+          writer.write('{');
+          for (int i = 0; i < sample.labelNames.size(); ++i) {
+            writer.write(sample.labelNames.get(i));
+            writer.write("=\"");
+            writeEscapedLabelValue(writer, sample.labelValues.get(i));
+            writer.write("\",");
+          }
+          writer.write('}');
+        }
+        writer.write(' ');
+        writer.write(Collector.doubleToGoString(sample.value));
+        if (sample.timestampMs != null){
+          writer.write(' ');
+          writer.write(sample.timestampMs.toString());
+        }
+        writer.write('\n');
+      }
+    }
+  }
+
+  private static void writeEscapedHelp(Writer writer, String s) throws IOException {
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      switch (c) {
+        case '\\':
+          writer.append("\\\\");
+          break;
+        case '\n':
+          writer.append("\\n");
+          break;
+        default:
+          writer.append(c);
+      }
+    }
+  }
+
+  private static void writeEscapedLabelValue(Writer writer, String s) throws IOException {
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      switch (c) {
+        case '\\':
+          writer.append("\\\\");
+          break;
+        case '\"':
+          writer.append("\\\"");
+          break;
+        case '\n':
+          writer.append("\\n");
+          break;
+        default:
+          writer.append(c);
+      }
+    }
   }
 
 }

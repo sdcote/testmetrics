@@ -35,6 +35,8 @@ public class TimingMaster implements TimerMaster {
    * Name-value pairs for labeling of metrics
    */
   protected Map<String, String> labels = new HashMap<>();
+
+  protected String description = null;
   /**
    * The name of this master set of timers.
    */
@@ -175,6 +177,11 @@ public class TimingMaster implements TimerMaster {
     return lastAccessTime;
   }
 
+  @Override
+  public void setDescription(String desc) {
+    this.description = desc;
+  }
+
 
   /**
    * Access the number of timers active for this timer master.
@@ -230,6 +237,11 @@ public class TimingMaster implements TimerMaster {
   @Override
   public String getName() {
     return _name;
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
   }
 
 

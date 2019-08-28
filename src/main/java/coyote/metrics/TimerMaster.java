@@ -3,7 +3,7 @@ package coyote.metrics;
 /**
  * The TimerMaster class models the master of all timers with a given name.
  */
-public interface TimerMaster extends Labeled {
+public interface TimerMaster extends Monitor {
   /**
    * @return The name of this timer set.
    */
@@ -51,4 +51,5 @@ public interface TimerMaster extends Labeled {
 
   long getLastAccessTime();
 
+  void setDescription(String desc);
 }

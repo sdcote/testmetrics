@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * The Metric class models a basic metric.
  */
-public class Metric implements Labeled {
+public class Metric implements Monitor {
   protected String _name;
   protected String _description = null;
   protected long _updateCount = 0;

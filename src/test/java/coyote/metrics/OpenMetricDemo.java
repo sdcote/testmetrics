@@ -55,8 +55,8 @@ public class OpenMetricDemo {
     // All our metrics to be sent to the PushGateway, or posted to an exporter for Prometheus to scrape
     //String metrics = timerMetrics.concat(counterMetrics.concat(gaugeMetrics));
 
-//    PushGatewayClient client = new PushGatewayClient();
-//    client.push("test_duration", "job_name");
+    PushGatewayClient client = new PushGatewayClient().setUrl("http://localhost:9292");
+    client.push("test_duration", "job_name");
 
   }
 }

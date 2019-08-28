@@ -1,5 +1,6 @@
 package coyote.metrics;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -340,4 +341,7 @@ public class MetricFormatter {
     }
   }
 
+  public static void convertToOpenMetrics(BufferedWriter writer, List<Monitor> monitors) {
+
+  }
 }

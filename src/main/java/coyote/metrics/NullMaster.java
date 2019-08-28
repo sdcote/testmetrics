@@ -16,6 +16,11 @@ public class NullMaster implements TimerMaster {
     return "";
   }
 
+  @Override
+  public String getDescription() {
+    return null;
+  }
+
 
   @Override
   public void increase(final long value) {
@@ -88,6 +93,9 @@ public class NullMaster implements TimerMaster {
   public long getLastAccessTime() {
     return 0;
   }
+
+  @Override
+  public void setDescription(String desc) {  }
 
   @Override
   public Labeled addLabel(String name, String value) {

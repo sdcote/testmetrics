@@ -24,6 +24,8 @@ public class OpenMetricDemo {
             .addLabel(MetricFormatter.METRIC_HELP_LABEL, "The duration of the test job")
             .addLabel("env", "development");
 
+    TimerMaster monitor = ScoreCard.getTimerMaster("Name of the scenario");
+
     // The test executes
     try {
       Thread.sleep(new Random().nextInt(3000));

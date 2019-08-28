@@ -86,13 +86,13 @@ public class MetricFormatter {
     boolean outputType = false;
     for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
       TimingMaster timer = (TimingMaster) it.next();
-      if (timer.hasLabel(METRIC_NAME_LABEL) && metricName.equals(timer.getLabel(METRIC_NAME_LABEL))) {
+      if (timer.hasLabel(METRIC_NAME_LABEL) && metricName.equals(timer.getLabelValue(METRIC_NAME_LABEL))) {
         try {
-          if (!outputHelp && timer.hasLabel(METRIC_HELP_LABEL) && timer.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
+          if (!outputHelp && timer.hasLabel(METRIC_HELP_LABEL) && timer.getLabelValue(METRIC_HELP_LABEL).trim().length() > 0) {
             writer.append("HELP ");
             writer.append(metricName);
             writer.write(' ');
-            writeEscapedHelp(writer, timer.getLabel(METRIC_HELP_LABEL).trim());
+            writeEscapedHelp(writer, timer.getLabelValue(METRIC_HELP_LABEL).trim());
             writer.append("\n");
             outputHelp = true;
           }
@@ -104,6 +104,18 @@ public class MetricFormatter {
           }
           writer.append(metricName);
           writer.append(" ");
+
+          List<String> names = timer.labelNames();
+          for (Iterator<String> itr = names.iterator(); itr.hasNext(); ) {
+            String name = itr.next();
+            if (name.equalsIgnoreCase(METRIC_NAME_LABEL) || name.equalsIgnoreCase(METRIC_HELP_LABEL)) {
+              itr.remove();
+            }
+          }
+
+
+
+
           writeLabels(writer, timer);
           writer.append(" ");
           writer.append(Long.toString(timer.getTotal()));
@@ -235,24 +247,17 @@ public class MetricFormatter {
 
 
   private static void writeLabels(Writer writer, Labeled labeled) throws IOException {
-    List<String> names = labeled.labelNames();
-    for (Iterator<String> it = names.iterator(); it.hasNext(); ) {
-      String name = it.next();
-      if (name.equalsIgnoreCase(METRIC_NAME_LABEL) || name.equalsIgnoreCase(METRIC_HELP_LABEL)) {
-        it.remove();
-      }
-    }
-    if (names.size() > 0) {
-      writer.write('{');
-      for (int i = 0; i < names.size(); ++i) {
-        writer.write(names.get(i));
-        writer.write("=\"");
-        writeEscapedLabelValue(writer, labeled.getLabel(names.get(i)));
-        writer.write("\"");
-        if (i + 1 < names.size()) writer.write(",");
-      }
-      writer.write('}');
-    }
+//    if (names.size() > 0) {
+//      writer.write('{');
+//      for (int i = 0; i < names.size(); ++i) {
+//        writer.write(names.get(i));
+//        writer.write("=\"");
+//        writeEscapedLabelValue(writer, labeled.getLabelValue(names.get(i)));
+//        writer.write("\"");
+//        if (i + 1 < names.size()) writer.write(",");
+//      }
+//      writer.write('}');
+//    }
 
   }
 

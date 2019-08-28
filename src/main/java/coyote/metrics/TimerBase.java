@@ -1,6 +1,8 @@
 package coyote.metrics;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The TimerBase class models the base class for all timers.
@@ -113,8 +115,8 @@ abstract class TimerBase implements Timer {
    * @return the value of the named label or null if the named value does ot exist.
    */
   @Override
-  public String getLabel(String name) {
-    return _master.getLabel(name);
+  public String getLabelValue(String name) {
+    return _master.getLabelValue(name);
   }
 
 
@@ -126,4 +128,11 @@ abstract class TimerBase implements Timer {
     return _master.labelNames();
   }
 
+  /**
+   * @return a mutable map of name-value pairs representing the labels in this metric
+   */
+  @Override
+  public Map<String, String> getLabels() {
+    return _master.getLabels();
+  }
 }

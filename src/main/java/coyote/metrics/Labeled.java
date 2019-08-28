@@ -1,6 +1,7 @@
 package coyote.metrics;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Labeled {
 
@@ -30,11 +31,17 @@ public interface Labeled {
    * @param name the name of the label to retrieve
    * @return the value of the named label or null if the named value does ot exist.
    */
-  String getLabel(String name);
+  String getLabelValue(String name);
 
   /**
    * @return a mutable list of label names.
    */
   List<String> labelNames();
+
+  /**
+   * @return a mutable map of name-value pairs
+   */
+  Map<String, String> getLabels();
+
 
 }

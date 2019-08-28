@@ -66,8 +66,8 @@ class CounterTest {
     Counter counter = new Counter("test");
     assertFalse(counter.hasLabel(""), "Empty counter should not contain any labels");
     counter.addLabel("bob", "value");
-    assertNotNull(counter.getLabel("bob"), "Missing value for requested label name");
-    assertEquals("value", counter.getLabel("bob"), "Incorrect label value retrieved");
+    assertNotNull(counter.getLabelValue("bob"), "Missing value for requested label name");
+    assertEquals("value", counter.getLabelValue("bob"), "Incorrect label value retrieved");
     assertFalse(counter.hasLabel("alice"), "Counter should not contain requested label name");
     assertTrue(counter.hasLabel("bob"), "Counter should contain requested tag");
     assertFalse(counter.hasLabel("Bob"), "Counter should not contain requested tag");

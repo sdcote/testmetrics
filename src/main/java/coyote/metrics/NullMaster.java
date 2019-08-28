@@ -1,6 +1,7 @@
 package coyote.metrics;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The NullMaster class models...
@@ -99,12 +100,17 @@ public class NullMaster implements TimerMaster {
   }
 
   @Override
-  public String getLabel(String name) {
+  public String getLabelValue(String name) {
     return null;
   }
 
   @Override
   public List<String> labelNames() {
+    return null;
+  }
+
+  @Override
+  public Map<String, String> getLabels() {
     return null;
   }
 }

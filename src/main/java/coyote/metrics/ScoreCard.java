@@ -5,6 +5,9 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.*;
 
+/**
+ * Runtime fixture to enable everything in the runtime to coordinate instrumentation.
+ */
 public class ScoreCard {
 
   /**
@@ -22,11 +25,24 @@ public class ScoreCard {
    */
   private static final Timer NULL_TIMER = new NullTimer(null);
   /**
-   * Map of master timers by their name
+   * Map of master timers by their name these are what create timer instances
    */
   private static final HashMap<String, TimingMaster> masterTimers = new HashMap<String, TimingMaster>();
+  /**
+   * Map of timer instances by their name. These are what we start and stop
+   */
+  private static final HashMap<String, Timer> timers = new HashMap<String, Timer>();
+  /**
+   * IP address of this host (instance)
+   */
   private static InetAddress localAddress = null;
+  /**
+   * The name of this host in DNS
+   */
   private static String cachedLocalHostName = null;
+  /**
+   * Unique identifier for this ScoreCard instance
+   */
   private static String BOARDID = UUID.randomUUID().toString().toLowerCase();
   /**
    * The time this scorecard was create/started.
@@ -41,44 +57,33 @@ public class ScoreCard {
     startedTimestamp = System.currentTimeMillis();
   }
 
-
   /**
    * No instances
    */
   private ScoreCard() {
   }
 
-
   /**
-   * Returns an {@code InetAddress} object encapsulating what is most likely
-   * the machine's LAN IP address.
+   * Returns an {@code InetAddress} object encapsulating what is most likely the machine's LAN IP address.
    *
-   * <p>This method is intended for use as a replacement of JDK method {@code
-   * InetAddress.getLocalHost}, because that method is ambiguous on Linux
-   * systems. Linux systems enumerate the loopback network interface the same
-   * way as regular LAN network interfaces, but the JDK {@code
-   * InetAddress.getLocalHost} method does not specify the algorithm used to
-   * select the address returned under such circumstances, and will often
-   * return the loopback address, which is not valid for network
-   * communication. Details
-   * <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4665037">here</a>.
+   * <p>This method is intended for use as a replacement of JDK method {@code InetAddress.getLocalHost}, because that
+   * method is ambiguous on Linux systems. Linux systems enumerate the loopback network interface the same way as
+   * regular LAN network interfaces, but the JDK {@code InetAddress.getLocalHost} method does not specify the algorithm
+   * used to select the address returned under such circumstances, and will often return the loopback address, which is
+   * not valid for network communication. Details
+   * <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4665037">here</a>.</p>
    *
-   * <p>This method will scan all IP addresses on all network interfaces on
-   * the host machine to determine the IP address most likely to be the
-   * machine's LAN address. If the machine has multiple IP addresses, this
-   * method will prefer a site-local IP address (e.g. 192.168.x.x or 10.10.x.x,
-   * usually IPv4) if the machine has one (and will return the first site-local
-   * address if the machine has more than one), but if the machine does not
-   * hold a site-local address, this method will return simply the first non-
-   * loopback address found (IPv4 or IPv6).
+   * <p>This method will scan all IP addresses on all network interfaces on the host machine to determine the IP
+   * address most likely to be the machine's LAN address. If the machine has multiple IP addresses, this method will
+   * prefer a site-local IP address (e.g. 192.168.x.x or 10.10.x.x, usually IPv4) if the machine has one (and will
+   * return the first site-local address if the machine has more than one), but if the machine does not hold a site-
+   * local address, this method will return simply the first non- loopback address found (IPv4 or IPv6).</p>
    *
-   * <p>Last ditch effort is to try a DNS lookup of the machines hostname.
-   * This can take a little time which it is the last resort and any results
-   * are cached to avoid any future DNS lookups.
+   * <p>Last ditch effort is to try a DNS lookup of the machines hostname. This can take a little time which it is the
+   * last resort and any results are cached to avoid any future DNS lookups.</p>
    *
-   * <p>If the above methods cannot find a non-loopback address using this
-   * selection algorithm, it will fall back to calling and returning the
-   * result of JDK method {@code InetAddress.getLocalHost}.
+   * <p>If the above methods cannot find a non-loopback address using this selection algorithm, it will fall back to
+   * calling and returning the result of JDK method {@code InetAddress.getLocalHost}.</p>
    */
   private static InetAddress getLocalAddress() {
     if (localAddress != null) {
@@ -134,8 +139,8 @@ public class ScoreCard {
   }
 
   /**
-   * Return the identifier the card is using to differentiate itself from other
-   * cards on this host and the system overall.
+   * Return the identifier the card is using to differentiate itself from other cards on this host and the system
+   * overall.
    *
    * @return The identifier for this scorecard.
    */
@@ -159,7 +164,6 @@ public class ScoreCard {
     return startedTimestamp;
   }
 
-
   /**
    * Get an iterator over all the Master Timers in the scorecard.
    */
@@ -176,8 +180,7 @@ public class ScoreCard {
    * Get the master timer with the given name.
    *
    * @param name The name of the master timer to retrieve.
-   * @return The master timer with the given name or null if that timer
-   * does not exist.
+   * @return The master timer with the given name or null if that timer does not exist.
    */
   public static TimingMaster getTimerMaster(final String name) {
     synchronized (masterTimers) {
@@ -186,13 +189,11 @@ public class ScoreCard {
   }
 
   /**
-   * Return how long the scorecard has been active in a format using only the
-   * significant time measurements.
+   * Return how long the scorecard has been active in a format using only the significant time measurements.
    *
-   * <p>Significant measurements means if the number of seconds extend past 24
-   * hours, then only report the days and hours skipping the minutes and
-   * seconds. Examples include <tt>4m 23s</tt> or <tt>22d 4h</tt>. The format
-   * is designed to make reporting scorecard up-time more polished.
+   * <p>Significant measurements means if the number of seconds extend past 24 hours, then only report the days and
+   * hours skipping the minutes and seconds. Examples include <tt>4m 23s</tt> or <tt>22d 4h</tt>. The format is
+   * designed to make reporting scorecard up-time more polished.
    *
    * @return the time the scorecard has been active in a reportable format.
    */
@@ -203,9 +204,8 @@ public class ScoreCard {
   /**
    * Print only the most significant portion of the time.
    *
-   * <p>This is the two most significant units of time. Form will be something
-   * like "3h 26m" indicating 3 hours 26 minutes and some insignificant number
-   * of seconds. Formats are Xd Xh (days-hours), Xh Xm (Hours-minutes), Xm Xs
+   * <p>This is the two most significant units of time. Form will be something like "3h 26m" indicating 3 hours 26
+   * minutes and some insignificant number of seconds. Formats are Xd Xh (days-hours), Xh Xm (Hours-minutes), Xm Xs
    * (minutes-seconds) and Xs (seconds).</p>
    *
    * @param seconds number of elapsed seconds NOT milliseconds.
@@ -247,8 +247,7 @@ public class ScoreCard {
   }
 
   /**
-   * @return the FQDN of the local host or null if the lookup failed for any
-   * reason.
+   * @return the FQDN of the local host or null if the lookup failed for any reason.
    */
   public static String getLocalQualifiedHostName() {
     // Use the cached version of the hostname to save DNS lookups
@@ -262,14 +261,12 @@ public class ScoreCard {
   }
 
   /**
-   * Use the underlying getCanonicalHostName as used in Java, but return null
-   * if the value is the numerical address (dotted-quad) representation of the
-   * address.
+   * Use the underlying getCanonicalHostName as used in Java, but return null if the value is the numerical address
+   * (dotted-quad) representation of the address.
    *
    * @param addr The IP address to lookup.
-   * @return The Canonical Host Name; null if the FQDN could not be determined
-   * or if the return value was the dotted-quad representation of the
-   * host address.
+   * @return The Canonical Host Name; null if the FQDN could not be determined or if the return value was the dotted-
+   * quad representation of the host address.
    */
   public static String getQualifiedHostName(InetAddress addr) {
     String name = null;
@@ -289,10 +286,8 @@ public class ScoreCard {
       }
     } catch (Exception ex) {
     }
-
     return name;
   }
-
 
   /**
    * Start a timer with the given name.
@@ -300,8 +295,7 @@ public class ScoreCard {
    * <p>Use the returned Timer to stop the interval measurement.
    *
    * @param name The name of the timer instance to start.
-   * @return The timer instance that should be stopped when the interval is
-   * completed.
+   * @return The timer instance that should be stopped when the interval is completed.
    */
   public static Timer startTimer(final String name) {
     Timer retval = null;
@@ -313,6 +307,7 @@ public class ScoreCard {
           masterTimers.put(name, master);
         }
         retval = master.createTimer();
+        timers.put(name, retval);
         retval.start();
       }
     } else {
@@ -331,13 +326,8 @@ public class ScoreCard {
     Timer retval = null;
     if (timingEnabled) {
       synchronized (masterTimers) {
-        TimingMaster master = masterTimers.get(name);
-        if (master == null) {
-          master = new TimingMaster(name);
-          masterTimers.put(name, master);
-        }
-        retval = master.createTimer();
-        retval.stop();
+        retval = timers.get(name);
+        if (retval != null) retval.stop();
       }
     } else {
       retval = NULL_TIMER;
@@ -345,17 +335,15 @@ public class ScoreCard {
     return retval;
   }
 
-
   /**
    * Disable the timer with the given name.
    *
-   * <p>Disabling a timer will cause all new timers with the given name to
-   * skip processing reducing the amount of processing performed by the
-   * timers without losing the existing data in the timer. Any existing
-   * timers will continue to accumulate data.
+   * <p>Disabling a timer will cause all new timers with the given name to skip processing reducing the amount of
+   * processing performed by the timers without losing the existing data in the timer. Any existing timers will
+   * continue to accumulate data.</p>
    *
-   * <p>If a timer is disabled that has not already been created, a disabled
-   * timer will be created in memory that can be enabled at a later time.
+   * <p>If a timer is disabled that has not already been created, a disabled timer will be created in memory that can
+   * be enabled at a later time.</p>
    *
    * @param name The name of the timer to disable.
    */
@@ -401,7 +389,6 @@ public class ScoreCard {
     }
   }
 
-
   /**
    * Disable timers from this point forward.
    *
@@ -417,8 +404,7 @@ public class ScoreCard {
   /**
    * Return the counter with the given name.
    *
-   * <p>If the counter does not exist, one will be created and added to the
-   * static list of counters for later retrieval.
+   * <p>If the counter does not exist, one will be created and added to the static list of counters for later retrieval.</p>
    *
    * @param name The name of the counter to return.
    * @return The counter with the given name.
@@ -509,10 +495,9 @@ public class ScoreCard {
   }
 
   /**
-   * Return the counter with the given name.
+   * Return the gauge with the given name.
    *
-   * <p>If the counter does not exist, one will be created and added to the
-   * static list of counters for later retrieval.
+   * <p>If the gauge does not exist, one will be created and added to the static list of gauges for later retrieval.</p>
    *
    * @param name The name of the counter to return.
    * @return The counter with the given name.
@@ -532,12 +517,11 @@ public class ScoreCard {
   }
 
   /**
-   * @return The number of counters in the scorecard at the present time.
+   * @return The number of gauges in the scorecard at the present time.
    */
   public static int getGaugeCount() {
     return gauges.size();
   }
-
 
   /**
    * Reset the counter with the given name returning a copy of the counter before the reset occurred.
@@ -583,11 +567,16 @@ public class ScoreCard {
     return retval;
   }
 
+  /**
+   * @return the local qualified hostname of this host
+   */
   public static String getHostname() {
     return getLocalQualifiedHostName();
   }
 
-
+  /**
+   * @return the Internet Address of this host
+   */
   public static InetAddress getHostIpAddress() {
     return getLocalAddress();
   }
@@ -605,7 +594,6 @@ public class ScoreCard {
     return getCounter(name).increment();
   }
 
-
   /**
    * Increase the value of the counter with the given name by the given amount.
    *
@@ -618,7 +606,6 @@ public class ScoreCard {
   public static long increaseCounter(final String name, final long value) {
     return getCounter(name).increase(value);
   }
-
 
   /**
    * Increment the value of the gauge with the given name.
@@ -656,9 +643,8 @@ public class ScoreCard {
    * @return The final value of the gauge after the operation.
    */
   public static long decrementGauge(final String name) {
-    return getGauge(name).increment();
+    return getGauge(name).decrement();
   }
-
 
   /**
    * Decrease the value of the gauge with the given name by the given amount.
@@ -672,6 +658,5 @@ public class ScoreCard {
   public static long decreaseGauge(final String name, final long value) {
     return getGauge(name).decrease(value);
   }
-
 
 }

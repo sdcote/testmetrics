@@ -420,7 +420,7 @@ public class TimingMaster implements TimerMaster {
    * @return the value of the named label or null if the named value does ot exist.
    */
   @Override
-  public String getLabel(String name) {
+  public String getLabelValue(String name) {
     String retval = null;
     if (name != null) retval = labels.get(name);
     return retval;
@@ -433,6 +433,18 @@ public class TimingMaster implements TimerMaster {
   public List<String> labelNames() {
     List<String> retval = new ArrayList<>();
     for (String name : labels.keySet()) retval.add(name);
+    return retval;
+  }
+
+  /**
+   * @return a mutable map of name-value pairs representing the labels in this metric
+   */
+  @Override
+  public Map<String, String> getLabels() {
+    Map<String,String>retval = new HashMap<>();
+    for( Map.Entry<String,String> entry: labels.entrySet()){
+      retval.put(entry.getKey(),entry.getValue());
+    }
     return retval;
   }
 
@@ -459,7 +471,7 @@ public class TimingMaster implements TimerMaster {
     message.append(getDisplayString(TimingMaster.AVGACTIVE, TimingMaster.convertToString(getAvgActive()), TimingMaster.NONE));
     message.append(getDisplayString(TimingMaster.FIRSTACCESS, getDateString(firstAccessTime), TimingMaster.NONE));
     message.append(getDisplayString(TimingMaster.LASTACCESS, getDateString(lastAccessTime), TimingMaster.NONE));
-
+    message.setLength(message.length() - 2); // remove the last delimiter and space
     return message.toString();
   }
 

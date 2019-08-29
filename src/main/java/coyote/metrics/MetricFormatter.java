@@ -68,29 +68,6 @@ public class MetricFormatter {
 
 
   /**
-   * Create a set of OpenMetric representations of all the timers in the Scorecard which have a label name of
-   * "metric_name" which matches the given name.
-   *
-   * <p>If the Timer contains a label with the name of "metric_help", that label will be used as the help text for the
-   * returned metric.</p>
-   *
-   * <p>The "job" will be the name of the timer and the "instance" will be the hostname retrieved from the ScoreCard.</p>
-   *
-   * @param metricName the name of the metric
-   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no timers
-   * were found with the matching labels.
-   */
-  public static String convertTimersToOpenMetrics(String metricName) {
-    Writer writer = new StringWriter();
-    for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
-      Monitor monitor = it.next();
-      if (monitor.hasLabel(METRIC_NAME_LABEL) && metricName.equals(monitor.getLabelValue(METRIC_NAME_LABEL))) {
-      }
-    }
-    return writer.toString();
-  }
-
-  /**
    * Create a set of OpenMetric representations of all the counters, timers, and gauges in the Scorecard which have a
    * label name of "metric_name".
    *

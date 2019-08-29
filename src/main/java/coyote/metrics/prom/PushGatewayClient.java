@@ -8,10 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is a utility class to send data to a PushGateway
@@ -61,15 +58,20 @@ public class PushGatewayClient {
     return this;
   }
 
+
+  void doRequest(String job, Map<String, String> groupingKey, String method, List<Monitor> monitors) throws IOException {
+    doRequest(job, groupingKey, method, monitors, false);
+  }
+
   /**
-   *
-   * @param job primary grouping element representing the name of the job to which these metrics apply.
-   * @param groupingKey additional grouping pairs such as "instance-myhost"
-   * @param method One of the HTTP methods (e.g. POST, PUT, and DELETE)
-   * @param monitors A list of monitors (gauges, counters, and timers) to push.
+   * @param job                  primary grouping element representing the name of the job to which these metrics apply.
+   * @param groupingKey          additional grouping pairs such as "instance-myhost"
+   * @param method               One of the HTTP methods (e.g. POST, PUT, and DELETE)
+   * @param monitors             A list of monitors (gauges, counters, and timers) to push.
+   * @param honorMetricNameLabel
    * @throws IOException
    */
-  void doRequest(String job, Map<String, String> groupingKey, String method, List<Monitor> monitors) throws IOException {
+  void doRequest(String job, Map<String, String> groupingKey, String method, List<Monitor> monitors, boolean honorMetricNameLabel) throws IOException {
     String url = gatewayUrl;
     if (job.contains("/")) {
       url += "job@base64/" + base64url(job);
@@ -99,10 +101,13 @@ public class PushGatewayClient {
 
     try {
       if (!method.equals("DELETE")) {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8));
-        MetricFormatter.convertToOpenMetrics(writer, monitors);
+         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8));
+        //Writer writer = new StringWriter();
+        MetricFormatter.convertToOpenMetrics(writer, monitors, honorMetricNameLabel);
         writer.flush();
+        //System.out.println(writer.toString());
         writer.close();
+
       }
 
       int response = connection.getResponseCode();
@@ -122,22 +127,14 @@ public class PushGatewayClient {
     }
   }
 
-  /**
-   * @param metricName name of the metrics to push (e.g. "test_duration")
-   */
-  public void push(String metricName) {
-    push(metricName, null);
-  }
-
 
   /**
    * Scans through the scorecard and finds all the monitors (counters, gauges and Timers) which have the label of
    * "metric_name" which matches the given value (i.e. the name of the metric to push).
    *
    * @param metricName name of the metrics to push (e.g. "test_duration")
-   * @param jobName    name of the job (e.g. "integration_test")
    */
-  public void push(String metricName, String jobName) {
+  public void pushJobNamedMetrics(String metricName) {
     if (metricName != null) {
       List<Monitor> monitors = new ArrayList<>();
       for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
@@ -153,19 +150,20 @@ public class PushGatewayClient {
         if (metricName.equals(metric.getLabelValue(MetricFormatter.METRIC_NAME_LABEL))) monitors.add(metric);
       }
 
-      for(Monitor monitor:monitors){
-        if( monitor instanceof Counter){
-          System.out.println( "counter");
-        } else if( monitor instanceof Gauge){
-          System.out.println( "gauge");
-        }if( monitor instanceof TimerMaster){
-          System.out.println( "timer");
-        } else {
-          System.out.println( monitor.getClass().getSimpleName());
+      // we now have a list of all monitors with a metric name label which matches our given name.
+      Map<String, String> groupingKey = new HashMap<>();
+      groupingKey.put("instance", ScoreCard.getHostname());
+      List<Monitor> monitorList = new ArrayList<>();
+      for (Monitor monitor : monitors) {
+        monitorList.add(monitor); // only one monitor per request since names are used as job names
+        try {
+          doRequest(monitor.getName(), groupingKey, "POST", monitorList, true);
+        } catch (IOException e) {
+          e.printStackTrace();
         }
+        monitorList.clear();
       }
     }
-
 
   }
 }

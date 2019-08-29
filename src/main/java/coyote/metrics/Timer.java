@@ -62,4 +62,11 @@ public interface Timer extends Labeled {
   void stop();
 
 
+  /**
+   * Set the description of the timer
+   *
+   * @param desc the description to set
+   * @return this timer for chaining of other method calls
+   */
+  Timer setDescription(String desc);
 }

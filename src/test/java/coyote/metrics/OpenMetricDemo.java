@@ -8,7 +8,7 @@ import java.util.Random;
 /**
  * Collecting metrics for tests is different than standard APM use cases. It is helpful to think about how the metrics
  * will be reported. Timers collect information on duration, so the metric name will usually be based on that; e.g.
- * "test_duration" or simply "duration".
+ * "test_duration" or simply "duration". When using timers, the average of all the hits are reported.
  * <p>
  * The job label is used to differentiate the same metric (like "duration"). For testing purposes, the name of the test
  * can be used as the job label. In this way, durations of a test can be treated separately. The "login" duration can
@@ -18,45 +18,36 @@ public class OpenMetricDemo {
 
   public static void main(String[] args) throws IOException {
 
-    // When a test starts we create and start the timer in the @Before hook
-    ScoreCard.startTimer("Name of the scenario")
-            .addLabel(MetricFormatter.METRIC_NAME_LABEL, "test_duration")
-            .addLabel(MetricFormatter.METRIC_HELP_LABEL, "The duration of the test job")
-            .addLabel("env", "development");
+    for (int i = 0; i < 3; i++) {
 
-    TimerMaster monitor = ScoreCard.getTimerMaster("Name of the scenario");
+      // When a test starts we create and start the timer in the @Before hook
+      ScoreCard.startTimer("Name of the scenario")
+              .setDescription("The duration of the test scenario in milliseconds")
+              .addLabel(MetricFormatter.METRIC_NAME_LABEL, "test_duration")
+              .addLabel("env", "development");
 
-    // The test executes
-    try {
-      Thread.sleep(new Random().nextInt(3000));
-    } catch (InterruptedException e) {
-    }
+      // The test executes
+      try {
+        Thread.sleep(new Random().nextInt(1000));
+      } catch (InterruptedException e) {
+      }
 
-    // Then we stop the timer in the @After hook
-    ScoreCard.stopTimer("Name of the scenario");
+      // Then we stop the timer in the @After hook
+      System.out.println(ScoreCard.stopTimer("Name of the scenario").getMaster().getTotal());
+
+    } // This happens many times, for all the test scenarios in our test cases
+
     System.out.println(ScoreCard.getTimerMaster("Name of the scenario"));
-
-    // This happens many times, for all the test scenarios in our test cases
 
     // At this point we have a collection of timer "jobs" - the name of the timer is the name of the "job".
 
     // Now we ask the Metrics Formatter to convert all the timers with a "metric_name" label of "performance_test_duration"
     String timerMetrics = MetricFormatter.convertTimersToOpenMetrics("test_duration");
     System.out.println(timerMetrics);
-    // this scans all the timers with a label with a name of "metric_name" which matches "performance_test_duration" and
-    // creates an OpenMetric formatted line for that metric. All other labels are added as labels to the OpenMetric record.
 
-    // counters are expected only to increase. The batch processing nature of tests tend to make counters useless
-    // String counterMetrics = MetricFormatter.convertCountersToOpenMetrics("test_step_count");
+    PushGatewayClient client = new PushGatewayClient().setUrl("http://localhost:9091").setCredentials("admin","admin");
+    client.pushJobNamedMetrics("test_duration"); // matches the METRIC_NAME_LABEL above
 
-    // gauges
-    //String gaugeMetrics = MetricFormatter.convertGaugesToOpenMetrics("test_failure_count");
-
-    // All our metrics to be sent to the PushGateway, or posted to an exporter for Prometheus to scrape
-    //String metrics = timerMetrics.concat(counterMetrics.concat(gaugeMetrics));
-
-    PushGatewayClient client = new PushGatewayClient().setUrl("http://localhost:9292");
-    client.push("test_duration", "job_name");
 
   }
 }

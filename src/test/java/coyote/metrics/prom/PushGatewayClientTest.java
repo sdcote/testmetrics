@@ -40,9 +40,9 @@ class PushGatewayClientTest {
     // - job_name
 
     // At the end of the job call the client to collect and send metrics based on the internally set metric name:
-    // client.pushJobNamedMetrics(monitors)
-    // client.pushJobNamedMetrics(monitors, jobName) - everything overriding the internally set job name
-    // each monitor will
+    // client.pushJobNamedMetrics() - the entire scoreboard
+    // client.pushJobNamedMetrics(monitors) - just the given monitors
+    // Each monitor will:
     // - have its name base on the internally set (label) name of the monitor
     // - have its job name base on the name of the monitor (unless overridden or missing)
     // - have its description used as the help text

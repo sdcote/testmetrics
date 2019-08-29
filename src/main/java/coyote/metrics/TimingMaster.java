@@ -42,9 +42,8 @@ public class TimingMaster implements TimerMaster {
    */
   String _name = null;
   /**
-   * Flag indicating we are currently running; the start() has been called
+   * The accrued value of all the times so far - i.e. the value of this timer set
    */
-  boolean running = true;
   long accrued;
   /**
    * Flag indicating if this timer is enabled
@@ -66,9 +65,10 @@ public class TimingMaster implements TimerMaster {
    * Epoch time in milliseconds when this timer was last accessed
    */
   private long lastAccessTime;
+  /**
+   * The maximum number of timers active at the same time
+   */
   private long maxActive = 0;
-
-  // -
 
   private long totalActive = 0;
   private long min = Long.MAX_VALUE;
@@ -85,10 +85,10 @@ public class TimingMaster implements TimerMaster {
   }
 
   /**
-   * Convert a float value to a String
+   * Convert a double value to a String
    *
-   * @param value
-   * @return
+   * @param value the value to format
+   * @return a comma formatted string representing the given double value
    */
   protected static String convertToString(final double value) {
     final DecimalFormat numberFormat = (DecimalFormat) NumberFormat.getNumberInstance();
@@ -97,17 +97,16 @@ public class TimingMaster implements TimerMaster {
   }
 
   /**
-   * Method convertToString
+   * Convert a long value to a comma formatted string
    *
-   * @param value
-   * @return
+   * @param value the value to format
+   * @return a comma formatted string representing the long
    */
   protected String convertToString(final long value) {
     final DecimalFormat numberFormat = (DecimalFormat) NumberFormat.getNumberInstance();
     numberFormat.applyPattern("#,###");
     return numberFormat.format(value);
   }
-
 
   /**
    * Create a new instance of a timer that will track times and other datum.
@@ -126,14 +125,12 @@ public class TimingMaster implements TimerMaster {
     return retval;
   }
 
-
   /**
    * @return Returns the accrued datum for all stopped timers.
    */
   public long getAccrued() {
     return accrued;
   }
-
 
   /**
    * @return the average time for all stopped timers for this master list.
@@ -153,7 +150,6 @@ public class TimingMaster implements TimerMaster {
   public long getTotal() {
     return total;
   }
-
 
   /**
    * @return the average number of active for the life of this master list.
@@ -177,22 +173,14 @@ public class TimingMaster implements TimerMaster {
     return lastAccessTime;
   }
 
-  @Override
-  public void setDescription(String desc) {
-    this.description = desc;
-  }
-
-
   /**
    * Access the number of timers active for this timer master.
    *
-   * @return Returns the number of timers currently active (started) for this
-   * master timer.
+   * @return Returns the number of timers currently active (started) for this master timer.
    */
   public long getCurrentActive() {
     return activeCounter;
   }
-
 
   private String getDateString(final long time) {
     if (time == 0) {
@@ -202,14 +190,13 @@ public class TimingMaster implements TimerMaster {
     }
   }
 
-
   /**
-   * Method getDisplayString
+   * Get a displayable string for the value (type=value uom)
    *
-   * @param type
-   * @param value
-   * @param units
-   * @return
+   * @param type the name of the value
+   * @param value the value to format
+   * @param units the units of measure
+   * @return the formatted string
    */
   protected String getDisplayString(final String type, final String value, final String units) {
     if (TimingMaster.NONE.equals(units)) {
@@ -219,17 +206,14 @@ public class TimingMaster implements TimerMaster {
     }
   }
 
-
   /**
    * Access the number of timers started in the runtime environment.
    *
-   * @return Returns the number of timers currently active (started) for all
-   * master timers.
+   * @return Returns the number of timers currently active (started) for all master timers.
    */
   public long getGloballyActive() {
     return TimingMaster.globalCounter;
   }
-
 
   /**
    * @return The name of this timer set.
@@ -239,15 +223,30 @@ public class TimingMaster implements TimerMaster {
     return _name;
   }
 
+  /**
+   * @return The description of this timer set.
+   */
   @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
+  public void setDescription(String desc) {
+    this.description = desc;
+  }
 
   /**
-   * Access the current standard deviation for all stopped timers using the
-   * Sum of Squares algorithm.
+   * @return The average value of this timer set.
+   */
+  @Override
+  public long getValue() {
+    return getAverage();
+  }
+
+
+  /**
+   * Access the current standard deviation for all stopped timers using the Sum of Squares algorithm.
    *
    * @return The amount of one standard deviation of all the interval times.
    */
@@ -262,7 +261,6 @@ public class TimingMaster implements TimerMaster {
       final long numerator = sumOfSquares - ((sumOfX * sumOfX) / n);
       stdDeviation = (long) Math.sqrt(numerator / nMinus1);
     }
-
     return stdDeviation;
   }
 
@@ -285,32 +283,22 @@ public class TimingMaster implements TimerMaster {
   /**
    * Increase the time by the specified amount of milliseconds.
    *
-   * <p>This is the method that keeps track of the various statistics being
-   * tracked.
+   * <p>This is the method that keeps track of the various statistics being tracked.
    *
    * @param value the amount to increase the accrued value.
    */
   @Override
   public synchronized void increase(final long value) {
-    // calculate min
     if (value < min) {
       min = value;
     }
-
-    // calculate max
     if (value > max) {
       max = value;
     }
-
-    // total _accrued value
     accrued += value;
-
-    // calculate total i.e. sumofX's
     total += value;
-
     sumOfSquares += value * value;
   }
-
 
   /**
    * @return True if the timer set is enabled, false otherwise.
@@ -331,8 +319,8 @@ public class TimingMaster implements TimerMaster {
   /**
    * Reset all variables for this master timer instance.
    *
-   * <p>The effect of this is to reset this objects variables to the state they
-   * were in when the object was first created.
+   * <p>The effect of this is to reset this objects variables to the state they were in when the object was first
+   * created.
    */
   synchronized protected void resetThis() {
     min = Long.MAX_VALUE;
@@ -453,9 +441,9 @@ public class TimingMaster implements TimerMaster {
    */
   @Override
   public Map<String, String> getLabels() {
-    Map<String,String>retval = new HashMap<>();
-    for( Map.Entry<String,String> entry: labels.entrySet()){
-      retval.put(entry.getKey(),entry.getValue());
+    Map<String, String> retval = new HashMap<>();
+    for (Map.Entry<String, String> entry : labels.entrySet()) {
+      retval.put(entry.getKey(), entry.getValue());
     }
     return retval;
   }
@@ -486,6 +474,5 @@ public class TimingMaster implements TimerMaster {
     message.setLength(message.length() - 2); // remove the last delimiter and space
     return message.toString();
   }
-
 
 }

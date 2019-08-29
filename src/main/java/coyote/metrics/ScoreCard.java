@@ -272,7 +272,7 @@ public class ScoreCard {
     String name = null;
 
     try {
-      name = addr.getCanonicalHostName();
+      name = addr.getCanonicalHostName(); // host.docker.internal
 
       if (name != null) {
         // Check for a return value of and address instead of a name

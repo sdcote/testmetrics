@@ -1,6 +1,5 @@
 package coyote.metrics;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -11,7 +10,6 @@ import java.util.List;
 
 public class MetricFormatter {
   public static final String METRIC_NAME_LABEL = "metric_name";
-  public static final String METRIC_HELP_LABEL = "metric_help";
 
   public static String toJson(Timer timer) {
     StringBuilder sb = new StringBuilder("{");
@@ -34,6 +32,7 @@ public class MetricFormatter {
         sb.append(getField(TimingMaster.MAX, Long.toString(master.getMaximum())));
         sb.append(',');
       }
+      // TODO: add labels
       sb.append(getField(TimingMaster.ACTIVE, Long.toString(master.getActiveCounter())));
       sb.append(',');
       sb.append(getField(TimingMaster.MAXACTIVE, Long.toString(master.getMaxActive())));
@@ -83,146 +82,13 @@ public class MetricFormatter {
    */
   public static String convertTimersToOpenMetrics(String metricName) {
     Writer writer = new StringWriter();
-    boolean outputHelp = false;
-    boolean outputType = false;
     for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
-      TimingMaster timer = (TimingMaster) it.next();
-      if (timer.hasLabel(METRIC_NAME_LABEL) && metricName.equals(timer.getLabelValue(METRIC_NAME_LABEL))) {
-        try {
-          if (!outputHelp && timer.hasLabel(METRIC_HELP_LABEL) && timer.getLabelValue(METRIC_HELP_LABEL).trim().length() > 0) {
-            writer.append("HELP ");
-            writer.append(metricName);
-            writer.write(' ');
-            writeEscapedHelp(writer, timer.getLabelValue(METRIC_HELP_LABEL).trim());
-            writer.append("\n");
-            outputHelp = true;
-          }
-          if (!outputType) {
-            writer.append("TYPE ");
-            writer.append(metricName);
-            writer.append(" counter\n");
-            outputType = true;
-          }
-          writer.append(metricName);
-          writer.append(" ");
-
-          List<String> names = timer.labelNames();
-          for (Iterator<String> itr = names.iterator(); itr.hasNext(); ) {
-            String name = itr.next();
-            if (name.equalsIgnoreCase(METRIC_NAME_LABEL) || name.equalsIgnoreCase(METRIC_HELP_LABEL)) {
-              itr.remove();
-            }
-          }
-
-
-
-
-          writeLabels(writer, timer);
-          writer.append(" ");
-          writer.append(Long.toString(timer.getTotal()));
-          writer.append("\n");
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+      Monitor monitor = it.next();
+      if (monitor.hasLabel(METRIC_NAME_LABEL) && metricName.equals(monitor.getLabelValue(METRIC_NAME_LABEL))) {
       }
     }
     return writer.toString();
   }
-
-
-  /**
-   * Create a set of OpenMetric representations of all the counters in the Scorecard which have a label name of
-   * "metric_name" which matches the given name.
-   *
-   * <p>If the Counter contains a label with the name of "metric_help", that label will be used as the help text for
-   * the returned metric.</p>
-   *
-   * <p>The "job" will be the name of the counter and the "instance" will be the hostname retrieved from the ScoreCard.</p>
-   *
-   * @param metricName the name of the metric
-   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no counters
-   * were found with the matching labels.
-   */
-//  public static String convertCountersToOpenMetrics(String metricName) {
-//    StringBuilder sb = new StringBuilder();
-//    //TODO: implement this
-//    boolean outputHelp = false;
-//    boolean outputType = false;
-//    if (metricName != null) {
-//      for (Iterator<Counter> it = ScoreCard.getCounterIterator(); it.hasNext(); ) {
-//        Counter counter = it.next();
-//        if (counter.hasLabel(METRIC_NAME_LABEL) && metricName.equals(counter.getLabel(METRIC_NAME_LABEL))) {
-//          if (!outputHelp && counter.hasLabel(METRIC_HELP_LABEL) && counter.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
-//            sb.append("HELP ");
-//            sb.append(counter.getLabel(METRIC_HELP_LABEL).trim());
-//            sb.append("\n");
-//            outputHelp = true;
-//          }
-//          if (!outputType) {
-//            sb.append("TYPE ");
-//            sb.append(metricName);
-//            sb.append(" counter\n");
-//            outputType = true;
-//          }
-//          sb.append(metricName);
-//          sb.append(" ");
-//          sb.append(writeLabels(counter));
-//          sb.append(" ");
-//          sb.append(counter.getValue());
-//          sb.append("\n");
-//        }
-//      }
-//    }
-//    return sb.toString();
-//  }
-
-
-  /**
-   * Create a set of OpenMetric representations of all the gauges in the Scorecard which have a label name of
-   * "metric_name" which matches the given name.
-   *
-   * <p>If the Gauge contains a label with the name of "metric_help", that label will be used as the help text for the
-   * returned metric.</p>
-   *
-   * <p>The "job" will be the name of the gauge and the "instance" will be the hostname retrieved from the ScoreCard.</p>
-   *
-   * @param metricName the name of the metric
-   * @return a set of OpenMetric records each terminated with a new line character, or an empty string if no gauges
-   * were found with the matching labels.
-   */
-//  public static String convertGaugesToOpenMetrics(String metricName) throws IOException {
-//    Writer writer = new StringWriter();
-//    //TODO: implement this
-//    boolean outputHelp = false;
-//    boolean outputType = false;
-//    if (metricName != null) {
-//      for (Iterator<Gauge> it = ScoreCard.getGaugeIterator(); it.hasNext(); ) {
-//        Gauge gauge = it.next();
-//        if (gauge.hasLabel(METRIC_NAME_LABEL) && metricName.equals(gauge.getLabel(METRIC_NAME_LABEL))) {
-//          if (!outputHelp && gauge.hasLabel(METRIC_HELP_LABEL) && gauge.getLabel(METRIC_HELP_LABEL).trim().length() > 0) {
-//            writer.append("HELP ");
-//            writeEscapedHelp(writer, gauge.getLabel(METRIC_HELP_LABEL).trim());
-//            writer.append("\n");
-//            outputHelp = true;
-//          }
-//          if (!outputType) {
-//            writer.append("TYPE ");
-//            writer.append(metricName);
-//            writer.append(" gauge\n");
-//            outputType = true;
-//          }
-//          writer.append(metricName);
-//          writer.append(" ");
-//          writer.append(writeLabels(gauge));
-//          writer.append(" ");
-//          writer.append(Long.toString(gauge.getValue()));
-//          writer.append("\n");
-//        }
-//      }
-//    }
-//    return writer.toString();
-//  }
-
 
   /**
    * Create a set of OpenMetric representations of all the counters, timers, and gauges in the Scorecard which have a
@@ -246,65 +112,6 @@ public class MetricFormatter {
     return writer.toString();
   }
 
-
-  private static void writeLabels(Writer writer, Labeled labeled) throws IOException {
-//    if (names.size() > 0) {
-//      writer.write('{');
-//      for (int i = 0; i < names.size(); ++i) {
-//        writer.write(names.get(i));
-//        writer.write("=\"");
-//        writeEscapedLabelValue(writer, labeled.getLabelValue(names.get(i)));
-//        writer.write("\"");
-//        if (i + 1 < names.size()) writer.write(",");
-//      }
-//      writer.write('}');
-//    }
-
-  }
-
-
-//  /**
-//   * Write out the text version 0.0.4 of the given MetricFamilySamples.
-//   */
-//  private static void write004(Writer writer) throws IOException {
-//    // See http://prometheus.io/docs/instrumenting/exposition_formats/  for the output format specification.
-//
-//    while (mfs.hasMoreElements()) {
-//      //Collector.MetricFamilySamples metricFamilySamples = mfs.nextElement();
-//      writer.write("# HELP ");
-//      writer.write(metricFamilySamples.name);
-//      writer.write(' ');
-//      writeEscapedHelp(writer, metricFamilySamples.help);
-//      writer.write('\n');
-//
-//      writer.write("# TYPE ");
-//      writer.write(metricFamilySamples.name);
-//      writer.write(' ');
-//      writer.write(typeString(metricFamilySamples.type));
-//      writer.write('\n');
-//
-//      for (Collector.MetricFamilySamples.Sample sample : metricFamilySamples.samples) {
-//        writer.write(sample.name);
-//        if (sample.labelNames.size() > 0) {
-//          writer.write('{');
-//          for (int i = 0; i < sample.labelNames.size(); ++i) {
-//            writer.write(sample.labelNames.get(i));
-//            writer.write("=\"");
-//            writeEscapedLabelValue(writer, sample.labelValues.get(i));
-//            writer.write("\",");
-//          }
-//          writer.write('}');
-//        }
-//        writer.write(' ');
-//        writer.write(Collector.doubleToGoString(sample.value));
-//        if (sample.timestampMs != null) {
-//          writer.write(' ');
-//          writer.write(sample.timestampMs.toString());
-//        }
-//        writer.write('\n');
-//      }
-//    }
-//  }
 
   private static void writeEscapedHelp(Writer writer, String s) throws IOException {
     for (int i = 0; i < s.length(); i++) {
@@ -341,7 +148,68 @@ public class MetricFormatter {
     }
   }
 
-  public static void convertToOpenMetrics(BufferedWriter writer, List<Monitor> monitors) {
-
+  public static void convertToOpenMetrics(Writer writer, List<Monitor> monitors) throws IOException {
+    convertToOpenMetrics(writer, monitors, false);
   }
+
+  public static void convertToOpenMetrics(Writer writer, List<Monitor> monitors, boolean honorMetricNameLabel) throws IOException {
+    boolean outputHelp = false;
+    boolean outputType = false;
+
+    for (Monitor monitor : monitors) {
+      String metricName = monitor.getName();
+
+      if (honorMetricNameLabel && monitor.hasLabel(METRIC_NAME_LABEL)) {
+        metricName = monitor.getLabelValue(METRIC_NAME_LABEL);
+      }
+
+      if (!outputHelp && monitor.getDescription().trim().length() > 0) {
+        writer.append("# HELP ");
+        writer.append(metricName);
+        writer.write(' ');
+        writeEscapedHelp(writer, monitor.getDescription().trim());
+        writer.append("\n");
+        outputHelp = true;
+      }
+      if (!outputType) {
+        writer.append("# TYPE ");
+        writer.append(metricName);
+        if (monitor instanceof Counter) {
+          writer.append(" counter");
+        } else {
+          writer.append(" gauge");
+        }
+        writer.append("\n");
+        outputType = true;
+      }
+      writer.append(metricName);
+      writer.append(" ");
+
+      List<String> names = monitor.labelNames();
+      if (honorMetricNameLabel) {
+        for (Iterator<String> itr = names.iterator(); itr.hasNext(); ) {
+          String name = itr.next();
+          if (name.equalsIgnoreCase(METRIC_NAME_LABEL)) {
+            itr.remove();
+          }
+        }
+      }
+
+      if (names.size() > 0) {
+        writer.write('{');
+        for (int i = 0; i < names.size(); ++i) {
+          writer.write(names.get(i));
+          writer.write("=\"");
+          writeEscapedLabelValue(writer, monitor.getLabelValue(names.get(i)));
+          writer.write("\"");
+          if (i + 1 < names.size()) writer.write(",");
+        }
+        writer.write("} ");
+      }
+
+      writer.append(Long.toString(monitor.getValue()));
+      writer.append("\n");
+    } // for each monitor
+  }
+
 }

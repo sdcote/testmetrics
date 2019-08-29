@@ -68,6 +68,12 @@ public class TimingTimer extends TimerBase {
     }
   }
 
+  @Override
+  public Timer setDescription(String desc) {
+    _master.setDescription(desc);
+    return this;
+  }
+
 
   /**
    * Get a number of milliseconds since the last start.

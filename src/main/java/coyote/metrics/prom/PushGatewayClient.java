@@ -59,17 +59,28 @@ public class PushGatewayClient {
   }
 
 
+  /**
+   * Send the given monitors to the push gateway.
+   *
+   * @param job         primary grouping element representing the name of the job to which these metrics apply.
+   * @param groupingKey additional grouping pairs such as "instance-myhost"
+   * @param method      One of the HTTP methods (e.g. POST, PUT, and DELETE)
+   * @param monitors    A list of monitors (gauges, counters, and timers) to push.
+   * @throws IOException if there were problems sending metrics to the push gateway
+   */
   void doRequest(String job, Map<String, String> groupingKey, String method, List<Monitor> monitors) throws IOException {
     doRequest(job, groupingKey, method, monitors, false);
   }
 
   /**
+   * Send the given monitors to the push gateway.
+   *
    * @param job                  primary grouping element representing the name of the job to which these metrics apply.
    * @param groupingKey          additional grouping pairs such as "instance-myhost"
    * @param method               One of the HTTP methods (e.g. POST, PUT, and DELETE)
    * @param monitors             A list of monitors (gauges, counters, and timers) to push.
-   * @param honorMetricNameLabel
-   * @throws IOException
+   * @param honorMetricNameLabel true to use the "metric_name" label as the metric name and the monitor name as the job name
+   * @throws IOException if there were problems sending metrics to the push gateway
    */
   void doRequest(String job, Map<String, String> groupingKey, String method, List<Monitor> monitors, boolean honorMetricNameLabel) throws IOException {
     String url = gatewayUrl;
@@ -101,7 +112,7 @@ public class PushGatewayClient {
 
     try {
       if (!method.equals("DELETE")) {
-         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8));
         //Writer writer = new StringWriter();
         MetricFormatter.convertToOpenMetrics(writer, monitors, honorMetricNameLabel);
         writer.flush();
@@ -133,8 +144,9 @@ public class PushGatewayClient {
    * "metric_name" which matches the given value (i.e. the name of the metric to push).
    *
    * @param metricName name of the metrics to push (e.g. "test_duration")
+   * @throws IOException if there were problems posting the ScoreCard to the push gateway
    */
-  public void pushJobNamedMetrics(String metricName) {
+  public void pushJobNamedMetrics(String metricName) throws IOException {
     if (metricName != null) {
       List<Monitor> monitors = new ArrayList<>();
       for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
@@ -156,14 +168,32 @@ public class PushGatewayClient {
       List<Monitor> monitorList = new ArrayList<>();
       for (Monitor monitor : monitors) {
         monitorList.add(monitor); // only one monitor per request since names are used as job names
-        try {
-          doRequest(monitor.getName(), groupingKey, "POST", monitorList, true);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+        doRequest(monitor.getName(), groupingKey, "POST", monitorList, true);
         monitorList.clear();
       }
     }
 
+  }
+
+  /**
+   * Push all the metrics in the scorecard.
+   *
+   * <p>This is the primary use case. Components will use the ScoreCard and just before existing, a call to push all
+   * collected metrics will be made.</p>
+   *
+   * @param jobName The name of the job these metrics represent
+   * @throws IOException if there were problems posting the ScoreCard to the push gateway
+   */
+  public void push(String jobName) throws IOException {
+    List<Monitor> monitors = new ArrayList<>();
+    for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); monitors.add(it.next())) ;
+    for (Iterator<Counter> it = ScoreCard.getCounterIterator(); it.hasNext(); monitors.add(it.next())) ;
+    for (Iterator<Gauge> it = ScoreCard.getGaugeIterator(); it.hasNext(); monitors.add(it.next())) ;
+
+    Map<String, String> groupingKey = new HashMap<>();
+    groupingKey.put("instance", ScoreCard.getHostname());
+    groupingKey.put("job", jobName);
+
+    doRequest(jobName, groupingKey, "POST", monitors);
   }
 }

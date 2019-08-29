@@ -130,8 +130,6 @@ public class MetricFormatter {
   }
 
   public static void convertToOpenMetrics(Writer writer, List<Monitor> monitors, boolean honorMetricNameLabel) throws IOException {
-    boolean outputHelp = false;
-    boolean outputType = false;
 
     for (Monitor monitor : monitors) {
       String metricName = monitor.getName();
@@ -140,25 +138,24 @@ public class MetricFormatter {
         metricName = monitor.getLabelValue(METRIC_NAME_LABEL);
       }
 
-      if (!outputHelp && monitor.getDescription().trim().length() > 0) {
+      if (monitor.getDescription() != null && monitor.getDescription().trim().length() > 0) {
         writer.append("# HELP ");
         writer.append(metricName);
         writer.write(' ');
         writeEscapedHelp(writer, monitor.getDescription().trim());
         writer.append("\n");
-        outputHelp = true;
       }
-      if (!outputType) {
-        writer.append("# TYPE ");
-        writer.append(metricName);
-        if (monitor instanceof Counter) {
-          writer.append(" counter");
-        } else {
-          writer.append(" gauge");
-        }
-        writer.append("\n");
-        outputType = true;
+      writer.append("# TYPE ");
+      writer.append(metricName);
+      if (monitor instanceof Gauge) {
+        writer.append(" gauge");
+      } else if (monitor instanceof Counter) {
+        writer.append(" counter");
+      } else {
+        writer.append(" gauge");
       }
+      writer.append("\n");
+
       writer.append(metricName);
       writer.append(" ");
 

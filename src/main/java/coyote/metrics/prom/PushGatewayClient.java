@@ -12,8 +12,7 @@ import java.util.*;
 
 /**
  * This is a utility class to send data to a PushGateway
- * <p>
- * To test things out, run the push gateway locally:
+ * <p>To test things out, run the push gateway locally:
  * <pre>docker run -d -p 9091:9091 prom/pushgateway</pre>
  * See https://hub.docker.com/r/transactcharlie/pushgateway/ for details
  */
@@ -23,14 +22,39 @@ public class PushGatewayClient {
    * Content-type for text version 0.0.4.
    */
   public final static String CONTENT_TYPE_004 = "text/plain; version=0.0.4; charset=utf-8";
-  public static final String DEFAULT_URL = "http://localhost:9091/metrics/";
+  public static final String DEFAULT_URL = "http://localhost:9091";
   private static final int MILLISECONDS_PER_SECOND = 1000;
   private String gatewayUrl;
   private HttpConnectionFactory connectionFactory;
 
+  /**
+   * Default constructor pointing to http://localhost:9091
+   */
   public PushGatewayClient() {
-    gatewayUrl = DEFAULT_URL;
+    setUrl(DEFAULT_URL);
     connectionFactory = new DefaultHttpConnectionFactory();
+  }
+
+  /**
+   * Constructor specifying the location of the PushGateway
+   *
+   * @param url The scheme host and port (i.e. authority) of the PushGateway server
+   */
+  public PushGatewayClient(String url) {
+    setUrl(url);
+    connectionFactory = new DefaultHttpConnectionFactory();
+  }
+
+  /**
+   * Constructor specifying the location of the PushGateway and basic auth credentials for preemptive authentication.
+   *
+   * @param url      The scheme host and port (i.e. authority) of the PushGateway server
+   * @param username the username of the account to be authenticated
+   * @param password the password credential to authenticate the account
+   */
+  public PushGatewayClient(String url, String username, String password) {
+    setUrl(url);
+    connectionFactory = new BasicAuthHttpConnectionFactory(connectionFactory, username, password);
   }
 
   private static String base64url(String v) {
@@ -48,16 +72,28 @@ public class PushGatewayClient {
     return result.toString("UTF-8");
   }
 
+  /**
+   * Set the location of the PushGateway
+   *
+   * @param url The scheme host and port (i.e. authority) of the PushGateway server
+   * @return this client instance for fluent method chaining
+   */
   public PushGatewayClient setUrl(String url) {
     gatewayUrl = URI.create(url + "/metrics/").normalize().toString();
     return this;
   }
 
+  /**
+   * Set the basic auth credentials for preemptive authentication.
+   *
+   * @param username the username of the account to be authenticated
+   * @param password the password credential to authenticate the account
+   * @return this client instance for fluent method chaining
+   */
   public PushGatewayClient setCredentials(String username, String password) {
     connectionFactory = new BasicAuthHttpConnectionFactory(connectionFactory, username, password);
     return this;
   }
-
 
   /**
    * Send the given monitors to the push gateway.
@@ -118,7 +154,6 @@ public class PushGatewayClient {
         writer.flush();
         //System.out.println(writer.toString());
         writer.close();
-
       }
 
       int response = connection.getResponseCode();
@@ -137,7 +172,6 @@ public class PushGatewayClient {
       connection.disconnect();
     }
   }
-
 
   /**
    * Scans through the scorecard and finds all the monitors (counters, gauges and Timers) which have the label of
@@ -161,18 +195,15 @@ public class PushGatewayClient {
         Metric metric = it.next();
         if (metricName.equals(metric.getLabelValue(MetricFormatter.METRIC_NAME_LABEL))) monitors.add(metric);
       }
-
-      // we now have a list of all monitors with a metric name label which matches our given name.
       Map<String, String> groupingKey = new HashMap<>();
       groupingKey.put("instance", ScoreCard.getHostname());
       List<Monitor> monitorList = new ArrayList<>();
       for (Monitor monitor : monitors) {
-        monitorList.add(monitor); // only one monitor per request since names are used as job names
+        monitorList.add(monitor); // only one monitor per request since monitor names are used as job names
         doRequest(monitor.getName(), groupingKey, "POST", monitorList, true);
         monitorList.clear();
       }
     }
-
   }
 
   /**
@@ -196,4 +227,5 @@ public class PushGatewayClient {
 
     doRequest(jobName, groupingKey, "POST", monitors);
   }
+
 }

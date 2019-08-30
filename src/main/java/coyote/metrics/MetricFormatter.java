@@ -61,7 +61,6 @@ public class MetricFormatter {
     return getQuoted(name).concat(":").concat(getQuoted(value));
   }
 
-
   private static String getQuoted(String value) {
     return "\"" + value + "\"";
   }

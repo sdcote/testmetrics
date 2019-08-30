@@ -23,6 +23,7 @@ public class PushGatewayClient {
    */
   public final static String CONTENT_TYPE_004 = "text/plain; version=0.0.4; charset=utf-8";
   public static final String DEFAULT_URL = "http://localhost:9091";
+  private static final String POST = "POST";
   private static final int MILLISECONDS_PER_SECOND = 1000;
   private String gatewayUrl;
   private HttpConnectionFactory connectionFactory;
@@ -149,10 +150,8 @@ public class PushGatewayClient {
     try {
       if (!method.equals("DELETE")) {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8));
-        //Writer writer = new StringWriter();
         MetricFormatter.convertToOpenMetrics(writer, monitors, honorMetricNameLabel);
         writer.flush();
-        //System.out.println(writer.toString());
         writer.close();
       }
 
@@ -200,7 +199,7 @@ public class PushGatewayClient {
       List<Monitor> monitorList = new ArrayList<>();
       for (Monitor monitor : monitors) {
         monitorList.add(monitor); // only one monitor per request since monitor names are used as job names
-        doRequest(monitor.getName(), groupingKey, "POST", monitorList, true);
+        doRequest(monitor.getName(), groupingKey, POST, monitorList, true);
         monitorList.clear();
       }
     }
@@ -225,7 +224,39 @@ public class PushGatewayClient {
     groupingKey.put("instance", ScoreCard.getHostname());
     groupingKey.put("job", jobName);
 
-    doRequest(jobName, groupingKey, "POST", monitors);
+    doRequest(jobName, groupingKey, POST, monitors);
+  }
+
+  /**
+   * Push all the metrics in the ScoreCard with the given name to the gateway.
+   *
+   * <p>Note: is is possible that up to 3 metrics will be sent if there is a Time, Counter and Gauge with the given
+   * name.</p>
+   *
+   * @param jobName    The name of the job these metrics represent
+   * @param metricName The name of the metric(s) to send.
+   * @throws IOException
+   */
+  public void push(String jobName, String metricName) throws IOException {
+    List<Monitor> monitors = new ArrayList<>();
+    for (Iterator<TimingMaster> it = ScoreCard.getTimerIterator(); it.hasNext(); ) {
+      TimingMaster timer = it.next();
+      if (metricName.equals(timer.getName())) monitors.add(timer);
+    }
+    for (Iterator<Counter> it = ScoreCard.getCounterIterator(); it.hasNext(); ) {
+      Metric metric = it.next();
+      if (metricName.equals(metric.getName())) monitors.add(metric);
+    }
+    for (Iterator<Gauge> it = ScoreCard.getGaugeIterator(); it.hasNext(); ) {
+      Metric metric = it.next();
+      if (metricName.equals(metric.getName())) monitors.add(metric);
+    }
+
+    Map<String, String> groupingKey = new HashMap<>();
+    groupingKey.put("instance", ScoreCard.getHostname());
+    groupingKey.put("job", jobName);
+
+    doRequest(jobName, groupingKey, POST, monitors);
   }
 
 }

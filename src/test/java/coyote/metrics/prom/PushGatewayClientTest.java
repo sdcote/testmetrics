@@ -11,7 +11,6 @@ class PushGatewayClientTest {
   @Test
   @Tag("integration")
   void standardUseCase() throws IOException {
-
     // create some monitors
     ScoreCard.startTimer("timer1").setDescription("Test time in milliseconds");
     ScoreCard.incrementCounter("counter1");
@@ -31,6 +30,7 @@ class PushGatewayClientTest {
    *
    */
   @Test
+  @Tag("integration")
   void testingUseCase() {
     // create monitors with the following labels:
     // - metric_name - the name of the metric to use (the monitor name will be used as the job name instead)
